@@ -37,7 +37,7 @@ namespace Project3 {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-
+	using namespace System::Runtime::InteropServices;
 	/// <summary>
 	/// Sumário para MyForm
 	/// </summary>
@@ -235,17 +235,20 @@ private: System::Void convertToGray_Click(System::Object^ sender, System::EventA
 	int width, height, channels;
 	const char* c = converted_xyz.c_str();
 	unsigned char* img = stbi_load(c, &width, &height, &channels, 4);
-	auto start = high_resolution_clock::now();
+	int time = 0;
+
 	if (checkBox1->Checked) {
-		obj.ImageToGrayGpu(img, width, height);
+		time=obj.ImageToGrayGpu(img, width, height);
 	}
 	else {
+		auto start = high_resolution_clock::now();
 		ConvertImageToGrayCpu(img, width, height);
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<microseconds>(stop - start);
+		time = duration.count();
 	}
-	
-	auto stop = high_resolution_clock::now();
-	auto duration = duration_cast<microseconds>(stop - start);
-	time_exec->Text = "Velocity : " + duration.count() + " microseconds";
+
+	time_exec->Text = "Velocity : "+ time.ToString() + " microseconds";
 	stbi_write_png("images/output.jpg", width, height, 4, img, 4 * width);
 	pictureBox2->ImageLocation = "images/output.jpg";
 	stbi_image_free(img);
