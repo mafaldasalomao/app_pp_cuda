@@ -246,7 +246,7 @@ private: System::Void convertToGray_Click(System::Object^ sender, System::EventA
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<microseconds>(stop - start);
 	time_exec->Text = "Velocity : " + duration.count() + " microseconds";
-	stbi_write_jpg("images/output.jpg", width, height, 4, img, 100);
+	stbi_write_png("images/output.jpg", width, height, 4, img, 4 * width);
 	pictureBox2->ImageLocation = "images/output.jpg";
 	stbi_image_free(img);
 }

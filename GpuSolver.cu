@@ -74,7 +74,7 @@ void useGPU::ImageToGrayGpu(unsigned char* imageRGBA, int width, int height) {
 	assert(cudaMemcpy(ptrImageDataGpu, imageRGBA, width * height * 4, cudaMemcpyHostToDevice) == cudaSuccess);
 
 	// Process image on gpu
-	dim3 blockSize(32, 32);
+	dim3 blockSize(20, 20);
 	dim3 gridSize(width / blockSize.x, height / blockSize.y);
 	//ConvertImageToGrayGpu <<<gridSize, blockSize >>> (ptrImageDataGpu);
 	ConvertImageToGrayGpu << <gridSize, blockSize >> > (ptrImageDataGpu);
