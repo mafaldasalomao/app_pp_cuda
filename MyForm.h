@@ -234,7 +234,7 @@ private: System::Void convertToGray_Click(System::Object^ sender, System::EventA
 	std::string converted_xyz = msclr::interop::marshal_as< std::string >(file);
 	int width, height, channels;
 	const char* c = converted_xyz.c_str();
-	unsigned char* img = stbi_load(c, &width, &height, &channels, 3);
+	unsigned char* img = stbi_load(c, &width, &height, &channels, 4);
 	auto start = high_resolution_clock::now();
 	if (checkBox1->Checked) {
 		obj.ImageToGrayGpu(img, width, height);
@@ -246,8 +246,9 @@ private: System::Void convertToGray_Click(System::Object^ sender, System::EventA
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<microseconds>(stop - start);
 	time_exec->Text = "Velocity : " + duration.count() + " microseconds";
-	stbi_write_jpg("images/output.jpg", width, height, 3, img, 100);
+	stbi_write_jpg("images/output.jpg", width, height, 4, img, 100);
 	pictureBox2->ImageLocation = "images/output.jpg";
+	stbi_image_free(img);
 }
 };
 }

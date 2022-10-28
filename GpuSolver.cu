@@ -5,7 +5,8 @@
 #include "device_launch_parameters.h"
 #include "GpuSolver.h"
 #include <stdio.h>
-
+#include "include/stb_image.h"
+#include "include/stb_image_write.h"
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -22,7 +23,7 @@
 //#include "include/stb_image_write.h"
 struct Pixel
 {
-	unsigned char r, g, b;
+	unsigned char r, g, b, a;
 };
 
 __global__ void AddKernel(int* c, const int* a, const int* b)
@@ -36,12 +37,13 @@ __global__ void ConvertImageToGrayGpu(unsigned char* imageRGBA)
 	uint32_t y = blockIdx.y * blockDim.y + threadIdx.y;
 	uint32_t idx = y * blockDim.x * gridDim.x + x;
 
-	Pixel* ptrPixel = (Pixel*)&imageRGBA[idx * 3];
+	Pixel* ptrPixel = (Pixel*)&imageRGBA[idx * 4];
 	unsigned char pixelValue = (unsigned char)
 		(ptrPixel->r * 0.2126f + ptrPixel->g * 0.7152f + ptrPixel->b * 0.0722f);
 	ptrPixel->r = pixelValue;
 	ptrPixel->g = pixelValue;
 	ptrPixel->b = pixelValue;
+	ptrPixel->a = 255;
 }
 
 using namespace std;
@@ -68,8 +70,8 @@ void useGPU::adding(int* c, const int* a, const int* b, unsigned int size) {
 }
 void useGPU::ImageToGrayGpu(unsigned char* imageRGBA, int width, int height) {
 	unsigned char* ptrImageDataGpu = nullptr;
-	assert(cudaMalloc(&ptrImageDataGpu, width * height * 3) == cudaSuccess);
-	assert(cudaMemcpy(ptrImageDataGpu, imageRGBA, width * height * 3, cudaMemcpyHostToDevice) == cudaSuccess);
+	assert(cudaMalloc(&ptrImageDataGpu, width * height * 4) == cudaSuccess);
+	assert(cudaMemcpy(ptrImageDataGpu, imageRGBA, width * height * 4, cudaMemcpyHostToDevice) == cudaSuccess);
 
 	// Process image on gpu
 	dim3 blockSize(32, 32);
@@ -80,9 +82,9 @@ void useGPU::ImageToGrayGpu(unsigned char* imageRGBA, int width, int height) {
 	auto err = cudaGetLastError();
 
 	// Copy data from the gpu
-	assert(cudaMemcpy(imageRGBA, ptrImageDataGpu, width * height * 3, cudaMemcpyDeviceToHost) == cudaSuccess);
+	assert(cudaMemcpy(imageRGBA, ptrImageDataGpu, width * height * 4, cudaMemcpyDeviceToHost) == cudaSuccess);
 
-
+	cudaFree(ptrImageDataGpu);
 	// Build output filename
 	//std::string fileNameOut = "images/output.jpg";
 	//stbi_write_jpg("images/output.jpg", width, height, 3, imageRGBA, 100);
